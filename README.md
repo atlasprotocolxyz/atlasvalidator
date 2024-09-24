@@ -13,7 +13,7 @@ Installation
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/atlas-validator.git
+git clone https://github.com/atlasprotocolxyz/atlasvalidator.git
 cd atlas-validator
 ```
 
