@@ -77,3 +77,13 @@ Start the validator:
 ``` windows
 start.bat
 ```
+
+Update Existing Repository
+
+Navigate to your project directory:
+
+Pull the latest changes:
+
+``` bash
+git pull origin main
+```
