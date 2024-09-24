@@ -75,5 +75,5 @@ Start the validator:
 ```
 
 ``` windows
-./start.bat
+start.bat
 ```
