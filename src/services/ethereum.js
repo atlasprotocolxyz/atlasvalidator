@@ -34,6 +34,11 @@ class Ethereum {
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
 
+  // Function to get the current block number
+  async getCurrentBlockNumber() {
+    return await this.web3.eth.getBlockNumber();
+  }
+
   async getBalance(accountId) {
     const balance = await this.web3.eth.getBalance(accountId);
     const ONE_ETH = 1000000000000000000n;
