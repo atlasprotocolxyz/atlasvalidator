@@ -14,7 +14,7 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/atlasprotocolxyz/atlasvalidator.git
-cd atlas-validator
+cd atlasvalidator
 ```
 
 Install dependencies:
