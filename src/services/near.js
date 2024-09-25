@@ -17,7 +17,7 @@ class Near {
     pk,
     network_id,
     gas,
-    mpcContractId,
+    mpcContractId
   ) {
     this.chain_rpc = chain_rpc;
     this.atlas_account_id = atlas_account_id;
@@ -37,7 +37,7 @@ class Near {
       await this.keyStore.setKey(
         this.network_id,
         this.atlas_account_id,
-        keyPair,
+        keyPair
       );
 
       // Setup connection to NEAR
@@ -64,7 +64,9 @@ class Near {
           "get_chain_config_by_chain_id",
           "get_first_valid_deposit_chain_config",
           "get_chain_ids_by_validator_and_network_type",
-          "get_first_valid_redemption"
+          "get_first_valid_redemption",
+          "get_bridging_by_txn_hash",
+          "get_all_bridgings",
         ],
         changeMethods: [
           "insert_deposit_btc",
@@ -87,6 +89,9 @@ class Near {
           "update_redemption_start",
           "update_redemption_pending_btc_mempool",
           "update_redemption_redeemed",
+          "insert_bridging_abtc",
+          "update_bridging_timestamp",
+          "update_bridging_remarks",
         ],
       });
 
@@ -184,7 +189,7 @@ class Near {
       "get_redemptions_by_btc_receiving_address",
       {
         btc_receiving_address: btcWalletAddress,
-      },
+      }
     );
   }
 
@@ -201,6 +206,17 @@ class Near {
   // Function to get all redemptions from NEAR contract
   async getAllRedemptions() {
     return this.makeNearRpcViewCall("get_all_redemptions", {});
+  }
+
+  // Function to get all bridgings from NEAR contract
+  async getAllBridgings() {
+    return this.makeNearRpcViewCall("get_all_bridgings", {});
+  }
+
+  async getBridgingByTxnHash(transactionHash) {
+    return this.makeNearRpcViewCall("get_bridging_by_txn_hash", {
+      txn_hash: transactionHash,
+    });
   }
 
   async getRedemptionByTxnHash(transactionHash) {
@@ -249,7 +265,7 @@ class Near {
       {
         account_id: accountId,
         network_type: networkType,
-      },
+      }
     );
   }
 
@@ -297,7 +313,7 @@ class Near {
     mintedTxnHash,
     timestamp,
     remarks,
-    date_created,
+    date_created
   ) {
     return this.makeNearRpcChangeCall("insert_deposit_btc", {
       btc_txn_hash: btcTxnHash,
@@ -319,7 +335,7 @@ class Near {
     btcAddress,
     amount,
     timestamp,
-    date_created,
+    date_created
   ) {
     return this.makeNearRpcChangeCall("insert_redemption_abtc", {
       txn_hash: transactionHash,
@@ -473,82 +489,86 @@ class Near {
 
   // Perform binary search to find block closest to the target timestamp
   // Perform binary search to find block closest to the target timestamp
-async getBlockNumberByTimestamp(targetTimestamp) {
-  const latestBlock = await this.getLatestBlock();
-  if (!latestBlock) {
+  async getBlockNumberByTimestamp(targetTimestamp) {
+    const latestBlock = await this.getLatestBlock();
+    if (!latestBlock) {
       console.error("Failed to fetch the latest block.");
       return null;
-  }
+    }
 
-  let high = latestBlock.header.height;
-  let low = high - 100000;  // Start searching from 100,000 blocks before the latest block
-  let bestBlock = null;
-  let midBlock = null;
-  let midTimestamp = 0;
-  let test = 0;
+    let high = latestBlock.header.height;
+    let low = high - 100000; // Start searching from 100,000 blocks before the latest block
+    let bestBlock = null;
+    let midBlock = null;
+    let midTimestamp = 0;
+    let test = 0;
 
-  while (low <= high) {
+    while (low <= high) {
       const mid = Math.floor((low + high) / 2);
 
       try {
-          midBlock = await this.getBlockByHeight(mid);
-          test = midBlock.header.timestamp; // Convert from nanoseconds to seconds
-          midTimestamp = Math.floor(midBlock.header.timestamp / 1_000_000_000); // Convert from nanoseconds to seconds
-            
-          console.log(`Checking block ${mid} with timestamp ${midTimestamp} - ${test}`);
+        midBlock = await this.getBlockByHeight(mid);
+        test = midBlock.header.timestamp; // Convert from nanoseconds to seconds
+        midTimestamp = Math.floor(midBlock.header.timestamp / 1_000_000_000); // Convert from nanoseconds to seconds
 
-          // Check if exact match
-          if (midTimestamp === targetTimestamp) {
-              bestBlock = midBlock;
-              break;
-          }
+        console.log(
+          `Checking block ${mid} with timestamp ${midTimestamp} - ${test}`
+        );
 
-          if (!bestBlock || Math.abs(midTimestamp - targetTimestamp) < Math.abs(bestBlock.header.timestamp - targetTimestamp)) {
-            bestBlock = midBlock;
-          }
+        // Check if exact match
+        if (midTimestamp === targetTimestamp) {
+          bestBlock = midBlock;
+          break;
+        }
 
-          // Adjust binary search range
-          if (midTimestamp < targetTimestamp) {
-              low = mid + 1;
-          } else {
-              high = mid - 1;
-          }
+        if (
+          !bestBlock ||
+          Math.abs(midTimestamp - targetTimestamp) <
+            Math.abs(bestBlock.header.timestamp - targetTimestamp)
+        ) {
+          bestBlock = midBlock;
+        }
+
+        // Adjust binary search range
+        if (midTimestamp < targetTimestamp) {
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
       } catch (error) {
-          console.warn(`Error fetching block at height ${mid}: ${error.message}`);
-          if (error.message.includes("DB Not Found Error")) {
-              // Adjust the range without updating bestBlock
-              if (midTimestamp < targetTimestamp) {
-                  low++;
-              } else {
-                  high--;
-              }
-              continue;
+        console.warn(`Error fetching block at height ${mid}: ${error.message}`);
+        if (error.message.includes("DB Not Found Error")) {
+          // Adjust the range without updating bestBlock
+          if (midTimestamp < targetTimestamp) {
+            low++;
           } else {
-              throw error; // Re-throw if it's a different type of error
+            high--;
           }
+          continue;
+        } else {
+          throw error; // Re-throw if it's a different type of error
+        }
       }
-  }
+    }
 
-  // Return the block height closest to the target timestamp
-  if (bestBlock) {
-      console.log(`Closest block found: ${bestBlock.header.height} with timestamp ${bestBlock.header.timestamp}`);
+    // Return the block height closest to the target timestamp
+    if (bestBlock) {
+      console.log(
+        `Closest block found: ${bestBlock.header.height} with timestamp ${bestBlock.header.timestamp}`
+      );
       return bestBlock.header.height;
-  } else {
+    } else {
       console.error("Failed to find a suitable block.");
       return latestBlock.header.height; // Return the latest block as a fallback
+    }
   }
-}
 
   // Fetch mint events in batches by parsing the memo field, but only from a specific contract address
   async getPastMintEventsInBatches(startBlock, endBlock) {
     const mintEvents = [];
     const targetContractId = this.contract_id;
 
-    for (
-      let blockHeight = startBlock;
-      blockHeight <= endBlock;
-      blockHeight++
-    ) {
+    for (let blockHeight = startBlock; blockHeight <= endBlock; blockHeight++) {
       try {
         const block = await this.provider.block({ blockId: blockHeight });
         for (const chunk of block.chunks) {
@@ -574,20 +594,20 @@ async getBlockNumberByTimestamp(targetTimestamp) {
 
             const txResult = await this.provider.txStatus(
               tx.hash,
-              tx.signer_id,
+              tx.signer_id
             );
             //console.log(txResult);
 
             // Loop through the receipts_outcome array to find logs with 'mint'
             const receipt = txResult.receipts_outcome.find((outcome) =>
-              outcome.outcome.logs.some((log) => log.includes("mint")),
+              outcome.outcome.logs.some((log) => log.includes("mint"))
             );
 
             //console.log(receipt);
             if (receipt && receipt.outcome.status.SuccessValue === "") {
               // Extract the log containing the JSON event
               const logEntry = receipt.outcome.logs.find((log) =>
-                log.includes("ft_mint"),
+                log.includes("ft_mint")
               );
 
               if (logEntry) {
@@ -601,7 +621,7 @@ async getBlockNumberByTimestamp(targetTimestamp) {
                 mintEvents.push({ btcTxnHash, transactionHash });
 
                 console.log(
-                  `Found mint event with btcTxnHash: ${btcTxnHash} and transactionHash: ${transactionHash}`,
+                  `Found mint event with btcTxnHash: ${btcTxnHash} and transactionHash: ${transactionHash}`
                 );
                 return mintEvents;
               }
@@ -613,6 +633,36 @@ async getBlockNumberByTimestamp(targetTimestamp) {
       }
     }
     return mintEvents;
+  }
+
+  async insertBridgingAbtc(record) {
+    return this.makeNearRpcChangeCall("insert_bridging_abtc", {
+      txn_hash: record.txn_hash,
+      origin_chain_id: record.origin_chain_id,
+      origin_chain_address: record.origin_chain_address,
+      dest_chain_id: record.dest_chain_id,
+      dest_chain_address: record.dest_chain_address,
+      dest_txn_hash: record.dest_txn_hash,
+      abtc_amount: record.abtc_amount,
+      timestamp: record.timestamp,
+      status: record.status,
+      remarks: record.remarks,
+      date_created: record.date_created,
+    });
+  }
+
+  async updateBridgingBtcDeposited(txnHash, timestamp) {
+    return this.makeNearRpcChangeCall("update_bridging_timestamp", {
+      btc_txn_hash: txnHash,
+      timestamp: timestamp,
+    });
+  }
+
+  async updateBridgingRemarks(txnHash, remarks) {
+    return this.makeNearRpcChangeCall("update_bridging_remarks", {
+      btc_txn_hash: txnHash,
+      remarks: remarks,
+    });
   }
 }
 
