@@ -67,6 +67,7 @@ class Near {
           "get_first_valid_redemption",
           "get_bridging_by_txn_hash",
           "get_all_bridgings",
+          "get_first_valid_bridging_chain_config",
         ],
         changeMethods: [
           "insert_deposit_btc",
@@ -90,8 +91,8 @@ class Near {
           "update_redemption_pending_btc_mempool",
           "update_redemption_redeemed",
           "insert_bridging_abtc",
-          "update_bridging_timestamp",
-          "update_bridging_remarks",
+          "update_bridging_btc_bridged",
+          "create_bridging_abtc_signed_tx",
         ],
       });
 
@@ -208,7 +209,7 @@ class Near {
     return this.makeNearRpcViewCall("get_all_redemptions", {});
   }
 
-  // Function to get all bridgings from NEAR contract
+  // Function to get all redemptions from NEAR contract
   async getAllBridgings() {
     return this.makeNearRpcViewCall("get_all_bridgings", {});
   }
@@ -651,17 +652,27 @@ class Near {
     });
   }
 
-  async updateBridgingBtcDeposited(txnHash, timestamp) {
-    return this.makeNearRpcChangeCall("update_bridging_timestamp", {
-      btc_txn_hash: txnHash,
+  async updateBridgingBtcBridged(txnHash, timestamp) {
+    return this.makeNearRpcChangeCall("update_bridging_btc_bridged", {
+      txn_hash: txnHash,
       timestamp: timestamp,
     });
   }
 
-  async updateBridgingRemarks(txnHash, remarks) {
-    return this.makeNearRpcChangeCall("update_bridging_remarks", {
-      btc_txn_hash: txnHash,
-      remarks: remarks,
+  async getFirstValidBridgingChainConfig() {
+    return this.makeNearRpcChangeCall(
+      "get_first_valid_bridging_chain_config",
+      {}
+    );
+  }
+
+  async createBridgingAbtcSignedTx(payloadHeader) {
+    return this.makeNearRpcChangeCall("create_bridging_abtc_signed_tx", {
+      txn_hash: payloadHeader.txn_hash,
+      nonce: payloadHeader.nonce,
+      gas: payloadHeader.gas,
+      max_fee_per_gas: payloadHeader.max_fee_per_gas,
+      max_priority_fee_per_gas: payloadHeader.max_priority_fee_per_gas,
     });
   }
 }

@@ -37,11 +37,6 @@ class Ethereum {
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
 
-  // Function to get the current block number
-  async getCurrentBlockNumber() {
-    return await this.web3.eth.getBlockNumber();
-  }
-
   async getBalance(accountId) {
     const balance = await this.web3.eth.getBalance(accountId);
     const ONE_ETH = 1000000000000000000n;
@@ -99,6 +94,27 @@ class Ethereum {
     return signedTransaction;
   }
 
+  async createMintBridgeABtcSignedTx(near, sender, txnHash) {
+    // Get the nonce & gas price
+    // console.log(`Getting nonce...`);
+    const nonce = await this.web3.eth.getTransactionCount(sender);
+
+    const { maxFeePerGas, maxPriorityFeePerGas } = await this.queryGasPrice();
+
+    const payloadHeader = {
+      txn_hash: txnHash,
+      nonce: Number(nonce), // Convert BigInt to Number
+      gas: this.gasLimit, // assuming gasLimit is a number
+      max_fee_per_gas: Number(maxFeePerGas), // Convert BigInt to Number
+      max_priority_fee_per_gas: Number(maxPriorityFeePerGas), // Convert BigInt to Number
+    };
+
+    const result = await near.createBridgingAbtcSignedTx(payloadHeader);
+
+    const signedTransaction = new Uint8Array(result);
+
+    return signedTransaction;
+  }
   // This is a sample function for send eth transaction, Arbitrum gasLimit set to 5 million
   async createSendEthPayload(sender, receiver, amount) {
     const common = new Common({ chain: this.chainID });
