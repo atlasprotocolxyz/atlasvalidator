@@ -107,8 +107,7 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
             );
             let evmStatus = 0;
             if (receipt.status) {
-              evmStatus =
-                BRIDGING_STATUS.ABTC_PENDING_BRIDGE_FROM_ORIGIN_TO_DEST;
+              evmStatus = BRIDGING_STATUS.ABTC_BURNT;
             }
 
             // Create the BridgingRecord object
