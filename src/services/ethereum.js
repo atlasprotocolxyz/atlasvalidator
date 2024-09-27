@@ -82,7 +82,7 @@ class Ethereum {
     const payloadHeader = {
       btc_txn_hash: btcTxnHash,
       nonce: Number(nonce), // Convert BigInt to Number
-      gas: this.gasLimit, // assuming gasLimit is a number
+      gas: Math.min(this.gasLimit, Number(maxFeePerGas)), // assuming gasLimit is a number
       max_fee_per_gas: Number(maxFeePerGas), // Convert BigInt to Number
       max_priority_fee_per_gas: Number(maxPriorityFeePerGas), // Convert BigInt to Number
     };
@@ -104,7 +104,7 @@ class Ethereum {
     const payloadHeader = {
       txn_hash: txnHash,
       nonce: Number(nonce), // Convert BigInt to Number
-      gas: this.gasLimit, // assuming gasLimit is a number
+      gas: Math.min(this.gasLimit, Number(maxFeePerGas)), // assuming gasLimit is a number
       max_fee_per_gas: Number(maxFeePerGas), // Convert BigInt to Number
       max_priority_fee_per_gas: Number(maxPriorityFeePerGas), // Convert BigInt to Number
     };
@@ -152,9 +152,11 @@ class Ethereum {
   // This code can be used to actually relay the transaction to the Ethereum network
   async relayTransaction(signedTransaction) {
     const serializedTx = bytesToHex(signedTransaction);
+    console.log(serializedTx);
     const relayed = await this.web3.eth.sendSignedTransaction(serializedTx);
     const txnHash = relayed.transactionHash;
     const status = relayed.status;
+
     return { txnHash, status };
   }
 
@@ -193,7 +195,7 @@ class Ethereum {
   // Function to get past events in batches
   // TO-DO: Create indexer so do not need to fetch all Burn Events for every run
   async getPastBurnEventsInBatches(startBlock, endBlock, batchSize) {
-    console.log(`Fetching Events in batches...`);
+    console.log(`Fetching Events in batches... ${startBlock} -> ${endBlock}`);
 
     return this._scanEvents(
       EVENT_NAME.BURN_REDEEM,
@@ -211,7 +213,7 @@ class Ethereum {
     batchSize,
     wallet
   ) {
-    console.log(`Fetching Events in batches...`);
+    console.log(`Fetching Events in batches... ${startBlock} -> ${endBlock}`);
 
     return this._scanEvents(
       EVENT_NAME.BURN_BRIDGE,
@@ -223,10 +225,21 @@ class Ethereum {
   }
 
   async getPastMintEventsInBatches(startBlock, endBlock, batchSize) {
-    console.log(`Fetching Events in batches...`);
+    console.log(`Fetching Events in batches... ${startBlock} -> ${endBlock}`);
 
     return this._scanEvents(
       EVENT_NAME.MINT_DEPOSIT,
+      startBlock,
+      endBlock,
+      batchSize
+    );
+  }
+
+  async getPastMintBridgeEventsInBatches(startBlock, endBlock, batchSize) {
+    console.log(`Fetching Events in batches... ${startBlock} -> ${endBlock}`);
+
+    return this._scanEvents(
+      EVENT_NAME.MINT_BRIDGE,
       startBlock,
       endBlock,
       batchSize
@@ -246,6 +259,10 @@ class Ethereum {
         toBlock = endBlock; // Ensure toBlock does not exceed endBlock
       }
 
+      console.log(
+        `${eventName} ------------ ${fromBlock} -> ${toBlock} | ${batchSize}`
+      );
+
       try {
         const filters = {
           fromBlock: fromBlock,
@@ -262,8 +279,18 @@ class Ethereum {
         allEvents = allEvents.concat(events);
         //console.log(`Fetched events from blocks ${fromBlock} to ${toBlock}`);
       } catch (error) {
+        if (error.message.includes("Block range is too large")) {
+          console.log(
+            `[${eventName}] Block range is too large | toBlock:${toBlock} -> toBlock:${Math.round(
+              Number(toBlock) / 2
+            )}`
+          );
+          toBlock = BigInt(Math.round(Number(toBlock) / 2));
+          continue;
+        }
+
         throw new Error(
-          `Error event:${eventName}: fetching events from blocks ${fromBlock} to ${toBlock}: ${error}`
+          `[${eventName}] Error: fetching events from blocks ${fromBlock} to ${toBlock}: ${error}`
         );
       }
 

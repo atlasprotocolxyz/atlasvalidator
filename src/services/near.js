@@ -91,8 +91,11 @@ class Near {
           "update_redemption_pending_btc_mempool",
           "update_redemption_redeemed",
           "insert_bridging_abtc",
+          "update_bridging_status",
           "update_bridging_btc_bridged",
+          "update_bridging_remarks",
           "create_bridging_abtc_signed_tx",
+          "update_bridging_minted",
         ],
       });
 
@@ -597,26 +600,38 @@ class Near {
               tx.hash,
               tx.signer_id
             );
-            //console.log(txResult);
 
-            // Loop through the receipts_outcome array to find logs with 'mint'
+            // Loop through the receipts_outcome array to find logs with 'ft_mint' event
             const receipt = txResult.receipts_outcome.find((outcome) =>
-              outcome.outcome.logs.some((log) => log.includes("mint"))
+              outcome.outcome.logs.some((log) => {
+                try {
+                  // Parse the log and check if it contains the "ft_mint" event
+                  const event = JSON.parse(log.replace("EVENT_JSON:", ""));
+                  return event.event === "ft_mint";
+                } catch (e) {
+                  return false; // In case log is not a JSON string
+                }
+              })
             );
 
-            //console.log(receipt);
             if (receipt && receipt.outcome.status.SuccessValue === "") {
               // Extract the log containing the JSON event
-              const logEntry = receipt.outcome.logs.find((log) =>
-                log.includes("ft_mint")
-              );
+              const logEntry = receipt.outcome.logs.find((log) => {
+                try {
+                  const event = JSON.parse(log.replace("EVENT_JSON:", ""));
+                  return event.event === "ft_mint";
+                } catch (e) {
+                  return false;
+                }
+              });
 
               if (logEntry) {
                 // Parse the JSON from the log entry
                 const event = JSON.parse(logEntry.replace("EVENT_JSON:", ""));
 
-                // Assuming the memo format is "owner,btcTxnHash", we can split it
-                const btcTxnHash = event.data[0].memo; // Get the second part which is btcTxnHash
+                // Extract the memo field from the event data and parse it
+                const memo = JSON.parse(event.data[0].memo);
+                const btcTxnHash = memo.btc_txn_hash; // Extract btc_txn_hash
                 const transactionHash = txResult.transaction.hash;
 
                 mintEvents.push({ btcTxnHash, transactionHash });
@@ -652,10 +667,32 @@ class Near {
     });
   }
 
+  async updateBridgingStatus(txnHash, status) {
+    return this.makeNearRpcChangeCall("update_bridging_status", {
+      btc_txn_hash: txnHash,
+      status: status,
+    });
+  }
+
   async updateBridgingBtcBridged(txnHash, timestamp) {
     return this.makeNearRpcChangeCall("update_bridging_btc_bridged", {
       txn_hash: txnHash,
       timestamp: timestamp,
+    });
+  }
+
+  async updateBridgingMinted(txnHash, destTxnHash, timestamp) {
+    return this.makeNearRpcChangeCall("update_bridging_minted", {
+      txn_hash: txnHash,
+      dest_txn_hash: destTxnHash,
+      timestamp: timestamp,
+    });
+  }
+
+  async updateBridgingRemarks(txnHash, remarks) {
+    return this.makeNearRpcChangeCall("update_bridging_remarks", {
+      txn_hash: txnHash,
+      remarks: remarks,
     });
   }
 

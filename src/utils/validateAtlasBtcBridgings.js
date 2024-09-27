@@ -77,9 +77,8 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
           //fetch all BurnRedeem Events (TO-DO: Read start block from file based on chainId)
           const endBlock = await ethereum.getCurrentBlockNumber();
           const events = await ethereum.getPastBurnBridgingEventsInBatches(
-            // endBlock - 1600000n, // to test Arb Sepolia
-            // endBlock - 700000n,   // to test OP Sepolia
-            83422192n,
+            endBlock - 5000n, // to test OP Sepolia
+            // 83422192n,
             endBlock,
             chainConfig.batchSize,
             bridgingRecord.origin_chain_address
