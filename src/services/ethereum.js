@@ -207,20 +207,14 @@ class Ethereum {
 
   // Function to get past events in batches
   // TO-DO: Create indexer so do not need to fetch all Burn Events for every run
-  async getPastBurnBridgingEventsInBatches(
-    startBlock,
-    endBlock,
-    batchSize,
-    wallet
-  ) {
+  async getPastBurnBridgingEventsInBatches(startBlock, endBlock, batchSize) {
     console.log(`Fetching Events in batches... ${startBlock} -> ${endBlock}`);
 
     return this._scanEvents(
       EVENT_NAME.BURN_BRIDGE,
       startBlock,
       endBlock,
-      batchSize,
-      wallet
+      batchSize
     );
   }
 

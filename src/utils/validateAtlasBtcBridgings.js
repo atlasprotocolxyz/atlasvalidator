@@ -27,44 +27,36 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
 
       // Retrieve constants and validators_threshold
       const { BRIDGING_STATUS, NETWORK_TYPE, DELIMITER } = getConstants(); // Access constants dynamically
-      //console.log(BRIDGING_STATUS);
-      //console.log(NETWORK_TYPE);
 
-      // Get all chain_ids which the validator is authorised to validate and network type = EVM
-      const allChainIdsToValidate =
-        await near.getChainIdsByValidatorAndNetworkType(
-          accountId,
-          NETWORK_TYPE.EVM
-        );
-      //console.log(accountId);
-      //console.log(NETWORK_TYPE.EVM);
-      //console.log(allChainIdsToValidate);
+      const filteredTxns = bridgings.filter(
+        (bridging) =>
+          bridging.status === BRIDGING_STATUS.ABTC_BURNT &&
+          bridging.remarks === ""
+      );
 
-      // Go through each authorised chain_id for this validator
-      for (const chainId of allChainIdsToValidate) {
-        const chainConfig = getChainConfig(chainId);
-        //console.log(chainId);
-        //console.log(chainConfig);
+      // Group bridgings by receiving_chain_id
+      const groupedTxns = filteredTxns.reduce((acc, bridging) => {
+        if (!acc[bridging.origin_chain_id]) {
+          acc[bridging.origin_chain_id] = [];
+        }
+        acc[bridging.origin_chain_id].push(bridging);
+        return acc;
+      }, {});
 
+      for (const chainID in groupedTxns) {
+        const chainConfig = getChainConfig(chainID);
         let validatorThreshold = chainConfig.validators_threshold;
-        //console.log(`validatorThreshold for chain_id ${chainId}: ${validatorThreshold}`);
-        //console.log(BRIDGING_STATUS.ABTC_BURNT);
-        //console.log(bridgings);
-
-        // Retrieve all NEAR bridging records with respective origin_chain_id, status = ABTC_BURNT and verified_count < chain_id.validators_threshold
-        const allBridgingsToValidate = bridgings.filter(
-          (bridging) =>
-            bridging.origin_chain_id === chainId &&
-            bridging.status === BRIDGING_STATUS.ABTC_BURNT &&
-            bridging.remarks === "" &&
-            bridging.verified_count < validatorThreshold
+        const bridgings = groupedTxns[chainID].filter(
+          (bridging) => bridging.verified_count < validatorThreshold
         );
-        console.log(
-          `chainId: ${chainId} - allBridgingsToValidate.length: ${allBridgingsToValidate.length}`
+        if (bridgings.length === 0) continue;
+
+        // Find the earliest timestamp in the bridgings for this chain
+        const earliestTimestamp = Math.min(
+          ...bridgings.map((bridging) => bridging.timestamp)
         );
 
-        // For each NEAR bridging record, find BurnRedeem events from respective chainId mempool and for each BurnBridge event: prepare a mempool_bridging record to pass into NEAR function
-        for (const bridgingRecord of allBridgingsToValidate) {
+        if (chainConfig.networkType === NETWORK_TYPE.EVM) {
           const web3 = new Web3(chainConfig.chainRpcUrl);
           const ethereum = new Ethereum(
             chainConfig.chainID,
@@ -74,21 +66,20 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
             chainConfig.abiPath
           );
 
-          //fetch all BurnRedeem Events (TO-DO: Read start block from file based on chainId)
+          const startBlock = await ethereum.getBlockNumberByTimestamp(
+            earliestTimestamp
+          );
           const endBlock = await ethereum.getCurrentBlockNumber();
           const events = await ethereum.getPastBurnBridgingEventsInBatches(
-            endBlock - 5000n, // to test OP Sepolia
-            // 83422192n,
+            startBlock,
             endBlock,
-            chainConfig.batchSize,
-            bridgingRecord.origin_chain_address
+            chainConfig.batchSize
           );
 
           console.log(
             `${chainConfig.networkName}: Found ${events.length} Burn events`
           );
 
-          //initialise BridgingRecord for each Burn event in one EVM chain
           for (const event of events) {
             const {
               returnValues: { wallet, destChainId, destChainAddress, amount },
@@ -106,6 +97,59 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
             );
             let evmStatus = 0;
             if (receipt.status) {
+              evmStatus = BRIDGING_STATUS.ABTC_BURNT;
+            }
+
+            // Create the BridgingRecord object
+            const record = {
+              txn_hash: bridgingTxnHash,
+              origin_chain_id: chainConfig.chainID,
+              origin_chain_address: wallet,
+              dest_chain_id: destChainId,
+              dest_chain_address: destChainAddress,
+              dest_txn_hash: "", // this field not used in validation
+              abtc_amount: Number(amount),
+              timestamp: timestamp,
+              status: evmStatus,
+              remarks: "",
+              date_created: timestamp, // this field not used in validation
+              verified_count: 0, // this field not used in validation
+            };
+
+            let blnValidated = await near.incrementBridgingVerifiedCount(
+              record
+            );
+
+            console.log(
+              `${batchName}: Validating ${bridgingTxnHash} -> ${blnValidated}`
+            );
+          }
+        } else if (chainConfig.networkType === NETWORK_TYPE.NEAR) {
+          const startBlock = await near.getBlockNumberByTimestamp(
+            earliestTimestamp
+          );
+          console.log("startBlock: " + startBlock);
+
+          const currentBlock = await near.getCurrentBlockNumber();
+          console.log("endBlock: " + currentBlock);
+
+          const events = await near.getPastBurnBridgingEventsInBatches(
+            startBlock - 5,
+            startBlock + 5,
+            chainConfig.aBTCAddress
+          );
+
+          for (const event of events) {
+            const {
+              returnValues: { wallet, destChainId, destChainAddress, amount },
+              transactionHash,
+              timestamp,
+              status,
+            } = event; // Make sure blockNumber is part of the event object
+
+            let bridgingTxnHash = `${transactionHash}${DELIMITER.COMMA}${chainConfig.chainID}`;
+            let evmStatus = 0;
+            if (status) {
               evmStatus = BRIDGING_STATUS.ABTC_BURNT;
             }
 
