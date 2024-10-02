@@ -119,7 +119,8 @@ async function ValidateAtlasBtcRedemptions(
               status: evmStatus,
               remarks: remarks,
               date_created: timestamp,    // this field not used in validation
-              verified_count: 0           // this field not used in validation
+              verified_count: 0,           // this field not used in validation
+              custody_txn_id: ""
             };
             //console.log(evmMempoolRedemptionRecord);
 
