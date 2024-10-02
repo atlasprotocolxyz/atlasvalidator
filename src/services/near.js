@@ -45,9 +45,6 @@ class Near {
         networkId: this.network_id,
         keyStore: this.keyStore,
         nodeUrl: this.chain_rpc,
-        // walletUrl: `https://wallet.${this.network_id}.near.org`,
-        // helperUrl: `https://helper.${this.network_id}.near.org`,
-        // explorerUrl: `https://explorer.${this.network_id}.near.org`,
       });
 
       this.account = await nearConnection.account(this.atlas_account_id);
@@ -147,45 +144,6 @@ class Near {
       btc_sender_address: btcWalletAddress,
     });
   }
-
-  // async reInitialiseConnection(){
-  //   // Setup connection to NEAR
-  //   const nearConnection = await connect({
-  //     networkId: this.network_id,
-  //     keyStore: this.keyStore,
-  //     nodeUrl: this.chain_rpc,
-  //     // walletUrl: `https://wallet.${this.network_id}.near.org`,
-  //     // helperUrl: `https://helper.${this.network_id}.near.org`,
-  //     // explorerUrl: `https://explorer.${this.network_id}.near.org`,
-  //   });
-
-  //   this.account = await nearConnection.account(this.atlas_account_id);
-
-  //   this.nearContract = new Contract(this.account, this.contract_id, {
-  //     viewMethods: [
-  //       "get_deposit_by_btc_txn_hash",
-  //       "get_all_deposits",
-  //       "get_redemption_by_txn_hash",
-  //       "get_all_redemptions",
-  //     ],
-  //     changeMethods: [
-  //       "insert_deposit_btc",
-  //       "update_deposit_timestamp",
-  //       "update_deposit_status",
-  //       "update_deposit_remarks",
-  //       "insert_redemption_abtc",
-  //       "update_redemption_timestamp",
-  //       "update_redemption_status",
-  //       "update_redemption_remarks",
-  //       "update_redemption_btc_txn_hash",
-  //     ],
-  //   });
-
-  //   this.nearMPCContract = new Contract(this.account, this.mpcContractId, {
-  //     viewMethods: ["public_key"],
-  //     changeMethods: ["sign"],
-  //   });
-  // }
 
   // Function to get redemption by BTC sender address from NEAR contract
   async getRedemptionsByBtcAddress(btcWalletAddress) {
