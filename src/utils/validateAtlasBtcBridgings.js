@@ -13,12 +13,12 @@ const { Ethereum } = require("../services/ethereum");
 // 4. TO DISCUSS: If validator_threshold gets updated suddenly, will this introduce any bugs?
 // 5. TO DISCUSS: Cannot delete verifications records else we are not able to allocate the airdrop
 // 6. TO DISCUSS: How to prevent authorised validators to directly call the public NEAR function increment_bridging_verified_count without going through this server.js function?
-async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
+async function ValidateAtlasBtcBridgings(bridgings, near) {
   const batchName = `Validator Batch ValidateAtlasBtcBridgings`;
 
   //console.log(`Checking for incomplete ${batchName} run...`);
   if (flagsBatch.ValidateAtlasBtcBridgingsRunning) {
-    //console.log(`Previous ${batchName} incomplete. Will skip this run.`);
+    console.log(`Previous ${batchName} incomplete. Will skip this run.`);
     return;
   } else {
     try {
@@ -43,7 +43,7 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
         return acc;
       }, {});
 
-      for (const chainID in groupedTxns) {
+      for (let chainID in groupedTxns) {
         const chainConfig = getChainConfig(chainID);
         let validatorThreshold = chainConfig.validators_threshold;
         const bridgings = groupedTxns[chainID].filter(
@@ -135,7 +135,7 @@ async function ValidateAtlasBtcBridgings(bridgings, accountId, near) {
 
           const events = await near.getPastBurnBridgingEventsInBatches(
             startBlock - 5,
-            startBlock + 5,
+            currentBlock,
             chainConfig.aBTCAddress
           );
 

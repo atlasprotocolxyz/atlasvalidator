@@ -111,18 +111,10 @@ async function continuousValidation() {
       );
 
       // Validate redemptions
-      await ValidateAtlasBtcRedemptions(
-        redemptions,
-        nearConfig.accountId,
-        near
-      );
+      await ValidateAtlasBtcRedemptions(redemptions, near);
 
       // Validate bridgings
-      await ValidateAtlasBtcBridgings(
-        bridgings, // Assuming you will fetch bridgings similarly
-        nearConfig.accountId,
-        near
-      );
+      await ValidateAtlasBtcBridgings(bridgings, near);
 
       // Sleep for a while before the next iteration
     } catch (error) {
