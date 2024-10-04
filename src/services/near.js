@@ -656,7 +656,6 @@ class Near {
               continue;
             }
 
-            console.log(`[${blockHeight}] [${tx.receiver_id}] ---> ${tx.hash}`);
             const txResult = await this.provider.txStatus(
               tx.hash,
               tx.signer_id
@@ -751,14 +750,9 @@ class Near {
             // console.log(`Processing transaction ${tx.hash} in block ${blockHeight}`);
             // Skip transactions that are not from the target contract address
             if (tx.receiver_id !== targetContractId) {
-              console.log(
-                `[${blockHeight}] --->  ${tx.signer_id} -- ${tx.receiver_id} # ${targetContractId}`
-              );
-
               continue;
             }
 
-            console.log(`[${blockHeight}] [${tx.receiver_id}] ---> ${tx.hash}`);
             const txResult = await this.provider.txStatus(
               tx.hash,
               tx.signer_id
@@ -858,14 +852,9 @@ class Near {
             // console.log(`Processing transaction ${tx.hash} in block ${blockHeight}`);
             // Skip transactions that are not from the target contract address
             if (tx.receiver_id !== targetContractId) {
-              console.log(
-                `[${blockHeight}] --->  ${tx.signer_id} -- ${tx.receiver_id} # ${targetContractId}`
-              );
-
               continue;
             }
 
-            console.log(`[${blockHeight}] [${tx.receiver_id}] ---> ${tx.hash}`);
             const txResult = await this.provider.txStatus(
               tx.hash,
               tx.signer_id
