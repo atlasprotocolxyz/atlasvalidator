@@ -8,6 +8,8 @@ const {
 const { InMemoryKeyStore } = keyStores;
 
 class Near {
+  static TRANSACTION_ROOT = "11111111111111111111111111111111";
+
   constructor(
     chain_rpc,
     atlas_account_id,
@@ -549,7 +551,7 @@ class Near {
       try {
         const block = await this.provider.block({ blockId: blockHeight });
         for (const chunk of block.chunks) {
-          if (chunk.tx_root === "11111111111111111111111111111111") {
+          if (chunk.tx_root === Near.TRANSACTION_ROOT) {
             //console.log(`No transactions in chunk ${chunk.chunk_hash}`);
             continue;
           }
@@ -632,7 +634,7 @@ class Near {
       try {
         const block = await this.provider.block({ blockId: blockHeight });
         for (const chunk of block.chunks) {
-          if (chunk.tx_root === "11111111111111111111111111111111") {
+          if (chunk.tx_root === Near.TRANSACTION_ROOT) {
             //console.log(`No transactions in chunk ${chunk.chunk_hash}`);
             continue;
           }
@@ -729,7 +731,7 @@ class Near {
       try {
         const block = await this.provider.block({ blockId: blockHeight });
         for (const chunk of block.chunks) {
-          if (chunk.tx_root === "11111111111111111111111111111111") {
+          if (chunk.tx_root === Near.TRANSACTION_ROOT) {
             //console.log(`No transactions in chunk ${chunk.chunk_hash}`);
             continue;
           }
@@ -836,7 +838,7 @@ class Near {
       try {
         const block = await this.provider.block({ blockId: blockHeight });
         for (const chunk of block.chunks) {
-          if (chunk.tx_root === "11111111111111111111111111111111") {
+          if (chunk.tx_root === Near.TRANSACTION_ROOT) {
             //console.log(`No transactions in chunk ${chunk.chunk_hash}`);
             continue;
           }
