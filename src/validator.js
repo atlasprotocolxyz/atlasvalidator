@@ -45,8 +45,8 @@ let bridgings = [];
 // Function to poll Near Atlas deposit records
 const getAllDepositHistory = async () => {
   try {
-    console.log("Fetching deposits history");
     deposits = await near.getAllDeposits();
+    console.log(`Fetching deposits history: ${deposits.length}`);
   } catch (error) {
     console.error(`Failed to fetch deposit history: ${error.message}`);
   }
@@ -55,8 +55,8 @@ const getAllDepositHistory = async () => {
 // Function to poll Near Atlas redemption records
 const getAllRedemptionHistory = async () => {
   try {
-    console.log("Fetching redemptions history");
     redemptions = await near.getAllRedemptions();
+    console.log(`Fetching redemptions history: ${redemptions.length}`);
   } catch (error) {
     console.error(`Failed to fetch redemption history: ${error.message}`);
   }
@@ -65,10 +65,10 @@ const getAllRedemptionHistory = async () => {
 // Function to poll Btc mempool records
 const getBtcMempoolRecords = async () => {
   try {
-    console.log("Fetching Btc Mempool Records");
     btcMempool = await bitcoin.fetchTxnsByAddress(
       btcConfig.btcAtlasDepositAddress
     );
+    console.log(`Fetching mempool records: ${btcMempool.length}`);
   } catch (error) {
     console.error(`Failed to fetch Btc Mempool records: ${error.message}`);
   }
@@ -77,8 +77,8 @@ const getBtcMempoolRecords = async () => {
 // Function to poll Near Atlas bridging records
 const getAllBridgingHistory = async () => {
   try {
-    //console.log("Fetching bridgings history");
     bridgings = await near.getAllBridgings();
+    console.log(`Fetching bridging history: ${bridgings.length}`);
   } catch (error) {
     console.error(`Failed to fetch bridging history: ${error.message}`);
   }
