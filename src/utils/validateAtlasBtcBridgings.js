@@ -88,7 +88,7 @@ async function ValidateAtlasBtcBridgings(bridgings, near) {
             } = event; // Make sure blockNumber is part of the event object
 
             const block = await web3.eth.getBlock(blockNumber);
-            let bridgingTxnHash = `${transactionHash}${DELIMITER.COMMA}${chainConfig.chainID}`;
+            let bridgingTxnHash = `${chainConfig.chainID}${DELIMITER.COMMA}${transactionHash}`;
             let timestamp = Number(block.timestamp);
 
             // Fetch the transaction receipt to check the status
@@ -147,7 +147,7 @@ async function ValidateAtlasBtcBridgings(bridgings, near) {
               status,
             } = event; // Make sure blockNumber is part of the event object
 
-            let bridgingTxnHash = `${transactionHash}${DELIMITER.COMMA}${chainConfig.chainID}`;
+            let bridgingTxnHash = `${chainConfig.chainID}${DELIMITER.COMMA}${transactionHash}`;
             let evmStatus = 0;
             if (status) {
               evmStatus = BRIDGING_STATUS.ABTC_BURNT;

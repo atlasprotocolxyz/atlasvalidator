@@ -68,7 +68,7 @@ const getBtcMempoolRecords = async () => {
     btcMempool = await bitcoin.fetchTxnsByAddress(
       btcConfig.btcAtlasDepositAddress
     );
-    console.log(`Fetching mempool records: ${btcMempool.length}`);
+    console.log(`Fetching mempool records: ${btcMempool.data.length}`);
   } catch (error) {
     console.error(`Failed to fetch Btc Mempool records: ${error.message}`);
   }
