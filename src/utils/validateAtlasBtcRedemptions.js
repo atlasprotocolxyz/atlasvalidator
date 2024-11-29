@@ -1,7 +1,7 @@
 const { Web3 } = require("web3");
 
 const { getConstants } = require("../constants");
-const { Ethereum } = require("../services/ethereum");
+const { Ethereum, blockRange } = require("../services/ethereum");
 
 const { getChainConfig } = require("./network.chain.config");
 const { flagsBatch } = require("./batchFlags");
@@ -63,7 +63,7 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
           const events = await ethereum.getPastBurnEventsInBatches(
             startBlock,
             endBlock,
-            chainConfig.batchSize
+            blockRange(Number(chainConfig.batchSize))
           );
 
           console.log(

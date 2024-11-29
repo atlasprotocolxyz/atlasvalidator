@@ -1,7 +1,7 @@
 const { getConstants } = require("../constants");
 
 const { getChainConfig } = require("./network.chain.config");
-const { flagsBatch } = require("./batchFlags");
+const { flagsBatch, blockRange } = require("./batchFlags");
 
 const { Web3 } = require("web3");
 const { Ethereum } = require("../services/ethereum");
@@ -73,7 +73,7 @@ async function ValidateAtlasBtcBridgings(bridgings, near) {
           const events = await ethereum.getPastBurnBridgingEventsInBatches(
             startBlock,
             endBlock,
-            chainConfig.batchSize
+            blockRange(Number(chainConfig.batchSize))
           );
 
           console.log(
