@@ -1,10 +1,10 @@
 const { Web3 } = require("web3");
 
 const { getConstants } = require("../constants");
-const { Ethereum, blockRange } = require("../services/ethereum");
+const { Ethereum } = require("../services/ethereum");
 
 const { getChainConfig } = require("./network.chain.config");
-const { flagsBatch } = require("./batchFlags");
+const { flagsBatch, blockRange } = require("./batchFlags");
 
 async function ValidateAtlasBtcRedemptions(redemptions, near) {
   const batchName = `Validator Batch ValidateAtlasBtcRedemptions`;
