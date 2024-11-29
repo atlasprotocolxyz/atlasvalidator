@@ -97,21 +97,21 @@ async function continuousValidation() {
     try {
       // Fetch data
       console.log("Starting a new validation cycle...");
-      // await getAllDepositHistory();
-      // await getAllRedemptionHistory();
-      // await getBtcMempoolRecords();
+      await getAllDepositHistory();
+      await getAllRedemptionHistory();
+      await getBtcMempoolRecords();
       await getAllBridgingHistory();
 
       // Validate deposits
-      // await ValidateAtlasBtcDeposits(
-      //   deposits,
-      //   btcConfig.btcAtlasDepositAddress,
-      //   near,
-      //   bitcoin
-      // );
+      await ValidateAtlasBtcDeposits(
+        deposits,
+        btcConfig.btcAtlasDepositAddress,
+        near,
+        bitcoin
+      );
 
       // Validate redemptions
-      // await ValidateAtlasBtcRedemptions(redemptions, near);
+      await ValidateAtlasBtcRedemptions(redemptions, near);
 
       // Validate bridgings
       await ValidateAtlasBtcBridgings(bridgings, near);
