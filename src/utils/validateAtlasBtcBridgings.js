@@ -78,7 +78,7 @@ async function ValidateAtlasBtcBridgings(bridgings, near) {
           );
 
           const events = await ethereum.getPastBurnBridgingEventsInBatches(
-            startBlock - 100,
+            startBlock - BigInt(100),
             endBlock,
             blockRange(Number(chainConfig.batchSize))
           );

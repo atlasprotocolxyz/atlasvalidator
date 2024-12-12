@@ -127,7 +127,7 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
 
           const endBlock = Math.min(
             Number(await near.getCurrentBlockNumber()),
-            Number(startBlock + 500)
+            Number(startBlock + 100)
           );
           console.log(
             `${batchName}  chainID:${chainConfig.chainID} - startBlock: ${startBlock} endBlock:${endBlock}`
@@ -135,7 +135,7 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
 
           const events = await near.getPastBurnRedemptionEventsInBatches(
             startBlock - 100,
-            currentBlock,
+            endBlock,
             chainConfig.aBTCAddress
           );
 
