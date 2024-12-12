@@ -247,7 +247,7 @@ class Ethereum {
     endBlock,
     batchSize,
     wallet,
-    concurrency = 2
+    concurrency = 1
   ) {
     const ranges = _.range(Number(startBlock), Number(endBlock), batchSize);
 
