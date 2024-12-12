@@ -59,8 +59,8 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
             earliestTimestamp
           );
           const endBlock = Math.min(
-            await ethereum.getCurrentBlockNumber(),
-            startBlock + 500
+            Number(await ethereum.getCurrentBlockNumber()),
+            Number(startBlock + 500)
           );
           console.log(
             `${batchName}  chainID:${chainConfig.chainID} - startBlock: ${startBlock} endBlock:${endBlock}`
@@ -126,8 +126,8 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
           );
 
           const endBlock = Math.min(
-            await near.getCurrentBlockNumber(),
-            startBlock + 500
+            Number(await near.getCurrentBlockNumber()),
+            Number(startBlock + 500)
           );
           console.log(
             `${batchName}  chainID:${chainConfig.chainID} - startBlock: ${startBlock} endBlock:${endBlock}`
