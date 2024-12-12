@@ -69,9 +69,16 @@ async function ValidateAtlasBtcBridgings(bridgings, near) {
           const startBlock = await ethereum.getBlockNumberByTimestamp(
             earliestTimestamp
           );
-          const endBlock = await ethereum.getCurrentBlockNumber();
+          const endBlock = Math.min(
+            await ethereum.getCurrentBlockNumber(),
+            startBlock + 500
+          );
+          console.log(
+            `${batchName}  chainID:${chainConfig.chainID} - startBlock: ${startBlock} endBlock:${endBlock}`
+          );
+
           const events = await ethereum.getPastBurnBridgingEventsInBatches(
-            startBlock,
+            startBlock - 100,
             endBlock,
             blockRange(Number(chainConfig.batchSize))
           );
@@ -128,14 +135,18 @@ async function ValidateAtlasBtcBridgings(bridgings, near) {
           const startBlock = await near.getBlockNumberByTimestamp(
             earliestTimestamp
           );
-          console.log("startBlock: " + startBlock);
 
-          const currentBlock = await near.getCurrentBlockNumber();
-          console.log("endBlock: " + currentBlock);
+          const endBlock = Math.min(
+            await near.getCurrentBlockNumber(),
+            startBlock + 500
+          );
+          console.log(
+            `${batchName}  chainID:${chainConfig.chainID} - startBlock: ${startBlock} endBlock:${endBlock}`
+          );
 
           const events = await near.getPastBurnBridgingEventsInBatches(
-            startBlock - 5,
-            currentBlock,
+            startBlock - 100,
+            endBlock,
             chainConfig.aBTCAddress
           );
 
