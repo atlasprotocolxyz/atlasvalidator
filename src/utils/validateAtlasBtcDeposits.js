@@ -82,6 +82,8 @@ async function ValidateAtlasBtcDeposits(
           remarks: remarks,
           date_created: btcMempoolTxn.status.block_time, // this field not used in validation
           verified_count: 0, // this field not used in validation
+          yield_provider_gas_fee: 0,
+          yield_provider_txn_hash: "",
         };
         console.log(btcMempoolDepositRecord);
 
