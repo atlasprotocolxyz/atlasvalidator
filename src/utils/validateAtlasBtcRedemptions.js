@@ -113,6 +113,7 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
               yield_provider_txn_hash: "",
             };
 
+            console.log(record);
             let blnValidated = await near.incrementRedemptionVerifiedCount(
               record
             );
@@ -128,7 +129,7 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
 
           const endBlock = Math.min(
             Number(await near.getCurrentBlockNumber()),
-            Number(startBlock + 100)
+            Number(startBlock + 10)
           );
           console.log(
             `${batchName}  chainID:${chainConfig.chainID} - startBlock: ${startBlock} endBlock:${endBlock}`
@@ -167,7 +168,8 @@ async function ValidateAtlasBtcRedemptions(redemptions, near) {
               remarks: "",
               date_created: timestamp, // this field not used in validation
               verified_count: 0,
-              custody_txn_id: "",
+              yield_provider_gas_fee: 0,
+              yield_provider_txn_hash: "",
             };
 
             let blnValidated = await near.incrementRedemptionVerifiedCount(
